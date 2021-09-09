@@ -2,11 +2,6 @@ import Control.Concurrent ( threadDelay )
 import Lib
 import System.IO
 
-paint :: String -> IO ()
-paint a = do
-    putStr a
-    hFlush stdout
-
 {- ===========================
    boundary function checks boundary conditions
    low: lower limit
@@ -31,14 +26,17 @@ loop (x, dx, y, dy) = do
    where (x', dx') = boundary (1, 80) (x, dx) 
          (y', dy') = boundary (1, 25) (y, dy)  
 
-main :: IO ()
-main = do
+init :: IO ()
+init = do
     cls
     putStr "\ESC[?25l" -- hide cursor
     hFlush stdout
     move 1 1
     draw "X"
-    dostuff (1, 1, 1, 1)  
+    loop (1, 1, 1, 1)  
+
+main :: IO ()
+main = init
 
 
 --print("\u001B[?25h") // display cursor
