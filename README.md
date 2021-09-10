@@ -9,25 +9,24 @@ For the where clause, we initially broke out the boundary condition checking cod
 
 To do: (not in any particular order)
 
-●  Add paddles (requires check for keyboard events)
-
-●  Add acceleration and variable ball velocity
-●  Add checks for above
-●  Add more balls
-●  Separate out impure from pure code
-●  Break out functions into separate threads
-●  Check for keyboard activity in its own thread
-●  Add obstructions
-●  Add more windows
-●  Allow balls to pass between windows
-●  Randomize starting ball position
-●  Add degree of difficulty
-●  Add option to change default speed (of ball)
-●  Add acceleration, momentum, weight?, size to ball
-●  Add responsivity to paddles
-●  Add score board
-●  Add gaming structure - start, end, save, game tally, player 1/2
-●  Add timer
-●  Add moving targets
-●  Add moving obstructions
-●  Add option to change size of paddles
+1. Add paddles (requires check for keyboard events)
+2. Add acceleration and variable ball velocity
+3. Add checks for above
+4. Add more balls
+5. Separate out impure from pure code
+6. Break out functions into separate threads
+7. Check for keyboard activity in its own thread
+8. Add obstructions
+9. Add more windows
+10. Allow balls to pass between windows
+11. Randomize starting ball position
+12. Add degree of difficulty
+13. Add option to change default speed (of ball)
+14. Add acceleration, momentum, weight?, size to ball
+15. Add responsivity to paddles
+16. Add score board
+17. Add gaming structure - start, end, save, game tally, player 1/2
+18. Add timer
+19. Add moving targets
+20. Add moving obstructions
+21. Add option to change size of paddles
