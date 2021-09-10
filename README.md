@@ -7,6 +7,8 @@ The initial phase of this project is to get the ball bouncing on the screen (in 
 
 For the where clause, we initially broke out the boundary condition checking code into a separate function using function pattern matching. Then we simplified the code by changing the function definition to use tuples to pass the ball position and increment for x and y coordinates. Further simplifications provided for static declarations of boundary limits.
 
+The next phase is to separate out the pure code from the IO. The loop code can be modified to use a state generater that creates a static list of projected positions of the ball. Then this list is used as forcing function data to use as ball trajectory data instead of using the loop to update the ball trajectory. This allows the ball position state to become pure and pump the next known state to the IO to print. 
+
 To do: (not in any particular order)
 
 1. Add paddles (requires check for keyboard events)
