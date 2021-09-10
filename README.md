@@ -10,6 +10,7 @@ For the where clause, we initially broke out the boundary condition checking cod
 To do: (not in any particular order)
 
 ●  Add paddles (requires check for keyboard events)
+
 ●  Add acceleration and variable ball velocity
 ●  Add checks for above
 ●  Add more balls
