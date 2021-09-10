@@ -1,3 +1,20 @@
+paint :: String -> IO ()
+paint a = do
+    putStr a
+    hFlush stdout
+
+loop :: ((Int, Int), (Int, Int)) (Int, Int, Int, Int) -> IO ()
+loop (xLim, yLim) (x, dx, y, dy) = do
+              move x' y'
+              draw "o"
+              erase x y
+              hFlush stdout
+              threadDelay 50000
+              loop (xLim, yLim) (x', dx', y', dy')  --already printed this position
+   where (x', dx') = boundary xLim (x, dx) 
+         (y', dy') = boundary yLim (y, dy)  
+
+
 step :: (Int, Int, Int, Int) -> (Int, Int, Int, Int)
 step (1, -1, y, dy) = (2, 1, y + dy, dy)
 step (80, 1, y, dy) = (79, -1, y + dy, dy)

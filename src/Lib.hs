@@ -22,8 +22,3 @@ erase :: Int -> Int -> IO ()
 erase x y = do move x y
                putStr " "
 
-paint :: String -> IO ()
-paint a = do
-    putStr a
-    hFlush stdout
-

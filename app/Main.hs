@@ -2,6 +2,9 @@ import Control.Concurrent ( threadDelay )
 import Lib
 import System.IO
 
+hiLimit = 80
+loLimit = 1
+
 {- ===========================
    boundary function checks boundary conditions
    low: lower limit
@@ -15,28 +18,38 @@ boundary (low, hi) (pos, inc)
    | (pos == low && inc < 0) || (pos == hi && inc > 0) = (pos - inc, -inc)
    | otherwise = (pos + inc, inc)
 
-loop :: (Int, Int, Int, Int) -> IO ()
-loop (x, dx, y, dy) = do
+loop :: ((Int, Int), (Int, Int)) -> (Int, Int, Int, Int) -> IO ()
+loop (xLim, yLim) (x, dx, y, dy) = do
               move x' y'
               draw "o"
               erase x y
               hFlush stdout
               threadDelay 50000
-              loop (x', dx', y', dy')  --already printed this position
-   where (x', dx') = boundary (1, 80) (x, dx) 
-         (y', dy') = boundary (1, 25) (y, dy)  
+              loop (xLim, yLim) (x', dx', y', dy')  --already printed this position
+   where (x', dx') = boundary xLim (x, dx) 
+         (y', dy') = boundary yLim (y, dy)  
 
-init :: IO ()
-init = do
+state' :: ((Int, Int), (Int, Int)) -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
+state' (xLim, yLim) (x, dx, y, dy) = (x', dx', y', dy') 
+   where (x', dx') = boundary xLim (x, dx) 
+         (y', dy') = boundary yLim (y, dy)  
+
+states :: ((Int, Int), (Int, Int)) -> (Int, Int, Int, Int) -> [(Int, Int, Int, Int)]
+states limits initState = iterate (state' limits) initState
+--states limits = iterate (state' limits) --remove initState, point free style
+
+initialize :: IO ()
+initialize = do
     cls
     putStr "\ESC[?25l" -- hide cursor
     hFlush stdout
-    move 1 1
-    draw "X"
-    loop (1, 1, 1, 1)  
+    --move 1 1
+    --draw "X"
+    putStrLn (show (take 10 (states ((1,80),(1,25)) (1, 1, 1, 1))))
+    --loop ((1,80),(1,25)) (1, 1, 1, 1)  
 
 main :: IO ()
-main = init
+main = initialize
 
 
 --print("\u001B[?25h") // display cursor
