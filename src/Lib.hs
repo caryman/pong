@@ -6,6 +6,9 @@ module Lib
     , erase
     ) where
 
+import System.IO
+
+
 cls :: IO ()
 cls = do putStr "\ESC[2J"
 
