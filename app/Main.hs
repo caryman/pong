@@ -1,28 +1,11 @@
-{-# LANGUAGE TemplateHaskell #-}
-
-import Control.Concurrent ( threadDelay )
-import Control.Lens
-import Lib
-import System.IO
+import           Control.Concurrent ( threadDelay )
+import           Control.Lens
+import           Lib
+import           Pong
+import           System.IO
 
 hiLimit = 80
 loLimit = 1
-
-data Point = Point { _x :: Int
-                   , _y :: Int
-                   } deriving (Eq, Show)
-
-data Velocity = Velocity { _dx :: Int
-                         , _dy :: Int
-                         } deriving (Eq, Show)
-
-data Ball = Ball { _position :: Point
-                 , _velocity :: Velocity
-                 } deriving (Eq, Show)
-
-makeLenses ''Point
-makeLenses ''Velocity
-makeLenses ''Ball
 
 {- ===========================
    boundary function checks boundary conditions
@@ -37,25 +20,30 @@ boundary (low, hi) (pos, inc)
    | (pos == low && inc < 0) || (pos == hi && inc > 0) = (pos - inc, -inc)
    | otherwise = (pos + inc, inc)
 
-loop :: ((Int, Int), (Int, Int)) -> Ball -> IO ()
-loop (xLim, yLim) ball = do
+loop :: ((Int, Int), (Int, Int)) -> Pong -> IO ()
+loop (xLim, yLim) pong = do
               move x' y'
               draw "o"
-              erase (ball^.position^.x) (ball^.position^.y)
+              erase (pong ^. ball ^. position ^. x) (pong ^. ball ^. position ^. y)
               hFlush stdout
               threadDelay 50000
-              loop (xLim, yLim) nextBall  --already printed this position
-   where (x', dx') = boundary xLim (ball^.position^.x, ball^.velocity^.dx)
-         (y', dy') = boundary yLim (ball^.position^.y, ball^.velocity^.dy)
+              loop (xLim, yLim) nextState  --already printed this position
+   where (x', dx') = boundary xLim (pong ^. ball ^. position ^. x, pong ^. ball ^. velocity ^. dx)
+         (y', dy') = boundary yLim (pong ^. ball ^. position ^. y, pong ^. ball ^. velocity ^. dy)
          nextBall = Ball (Point x' y') (Velocity dx' dy')
+         nextPaddles = pong ^. paddles
+         nextState = Pong nextBall nextPaddles
 
-state' :: ((Int, Int), (Int, Int)) -> Ball -> Ball
-state' (xLim, yLim) ball = nextBall
-   where (x', dx') = boundary xLim (ball^.position^.x, ball^.velocity^.dx)
-         (y', dy') = boundary yLim (ball^.position^.y, ball^.velocity^.dy)
+state' :: ((Int, Int), (Int, Int)) -> Pong -> Pong
+state' (xLim, yLim) pong = nextState
+   where (x', dx') = boundary xLim (pong ^. ball ^. position ^. x, pong ^. ball ^. velocity ^. dx)
+         (y', dy') = boundary yLim (pong ^. ball ^. position ^. y, pong ^. ball ^. velocity ^. dy)
          nextBall = Ball (Point x' y') (Velocity dx' dy')
+         nextPaddles = pong ^. paddles
+         nextState = Pong nextBall nextPaddles
 
-states :: ((Int, Int), (Int, Int)) -> Ball -> [Ball]
+
+states :: ((Int, Int), (Int, Int)) -> Pong -> [Pong]
 states limits initState = iterate (state' limits) initState
 --states limits = iterate (state' limits) --remove initState, point free style
 
@@ -66,8 +54,11 @@ initialize = do
     hFlush stdout
     --move 1 1
     --draw "X"
-    let initialState = Ball (Point 1 1) (Velocity 1 1)
-    putStrLn (show (take 10 (states ((1,80),(1,25)) initialState)))
+    let initialBall = Ball (Point 1 1) (Velocity 1 1)
+    let leftPaddle = Paddle (Point 1 30) 30
+    let rightPaddle = Paddle (Point 80 30) 30
+    let initialState = Pong initialBall (leftPaddle, rightPaddle)
+    putStrLn $ show (take 10 (states ((1,80),(1,25)) initialState))
     --loop ((1,80),(1,25)) initialState
 
 main :: IO ()
