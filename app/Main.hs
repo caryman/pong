@@ -58,8 +58,8 @@ initialize = do
     let leftPaddle = Paddle (Point 1 30) 30
     let rightPaddle = Paddle (Point 80 30) 30
     let initialState = Pong initialBall (leftPaddle, rightPaddle)
-    putStrLn $ show (take 10 (states ((1,80),(1,25)) initialState))
-    --loop ((1,80),(1,25)) initialState
+    --putStrLn $ show (take 10 (states ((1,80),(1,25)) initialState))
+    loop ((1,80),(1,25)) initialState
 
 main :: IO ()
 main = initialize

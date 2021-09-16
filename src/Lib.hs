@@ -1,13 +1,6 @@
-module Lib
-    ( cls
-    , bel
-    , draw
-    , move
-    , erase
-    ) where
+module Lib where
 
 import System.IO
-
 
 cls :: IO ()
 cls = do putStr "\ESC[2J"
