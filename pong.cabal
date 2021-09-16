@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Pong
   other-modules:
       Paths_pong
   hs-source-dirs:
