@@ -1,4 +1,5 @@
 import           Control.Concurrent ( threadDelay )
+import           Control.Monad.State
 import           Control.Lens
 import           Lib
 import           Pong
@@ -20,28 +21,40 @@ boundary (low, hi) (pos, inc)
    | (pos == low && inc < 0) || (pos == hi && inc > 0) = (pos - inc, -inc)
    | otherwise = (pos + inc, inc)
 
+checkBounds :: ((Int, Int), (Int, Int)) -> State Pong ()
+checkBounds (xLim, yLim) = do
+    p <- get
+    let px = view ballX p
+        py = view ballY p
+        vx = view ballDx p
+        vy = view ballDy p
+        (x', dx') = boundary xLim (px, vx)
+        (y', dy') = boundary yLim (py, vy)
+
+    ballX .= x'
+    ballY .= y'
+    ballDx .= dx'
+    ballDy .= dy'
+
+
 loop :: ((Int, Int), (Int, Int)) -> Pong -> IO ()
 loop (xLim, yLim) pong = do
-              move x' y'
-              draw "o"
-              erase (pong ^. ball ^. position ^. x) (pong ^. ball ^. position ^. y)
-              hFlush stdout
-              threadDelay 50000
-              loop (xLim, yLim) nextState  --already printed this position
-   where (x', dx') = boundary xLim (pong ^. ball ^. position ^. x, pong ^. ball ^. velocity ^. dx)
-         (y', dy') = boundary yLim (pong ^. ball ^. position ^. y, pong ^. ball ^. velocity ^. dy)
-         nextBall = Ball (Point x' y') (Velocity dx' dy')
-         nextPaddles = pong ^. paddles
-         nextState = Pong nextBall nextPaddles
+    move x' y'
+    draw "o"
+    erase (view ballX pong) (view ballY pong)
+    hFlush stdout
+    threadDelay 50000
+    loop (xLim, yLim) nextState  --already printed this position
+  where
+    nextState = execState (checkBounds (xLim, yLim)) pong
+    x' = view ballX nextState
+    y' = view ballY nextState
+
 
 state' :: ((Int, Int), (Int, Int)) -> Pong -> Pong
 state' (xLim, yLim) pong = nextState
-   where (x', dx') = boundary xLim (pong ^. ball ^. position ^. x, pong ^. ball ^. velocity ^. dx)
-         (y', dy') = boundary yLim (pong ^. ball ^. position ^. y, pong ^. ball ^. velocity ^. dy)
-         nextBall = Ball (Point x' y') (Velocity dx' dy')
-         nextPaddles = pong ^. paddles
-         nextState = Pong nextBall nextPaddles
-
+  where
+    nextState = execState (checkBounds (xLim, yLim)) pong
 
 states :: ((Int, Int), (Int, Int)) -> Pong -> [Pong]
 states limits initState = iterate (state' limits) initState

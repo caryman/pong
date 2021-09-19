@@ -76,5 +76,15 @@ makeFieldsNoPrefix ''PlayFieldSpecs
 makeFieldsNoPrefix ''PlayFieldObjects
 makeFieldsNoPrefix ''PlayFieldObject
 
+ballX :: Lens' Pong Int
+ballX = ball . position . x
 
+ballY :: Lens' Pong Int
+ballY = ball . position . y
+
+ballDx :: Lens' Pong Int
+ballDx = ball . velocity . dx
+
+ballDy :: Lens' Pong Int
+ballDy = ball . velocity . dy
 
