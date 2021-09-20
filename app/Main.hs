@@ -1,3 +1,5 @@
+{-# LANGUAGE DisambiguateRecordFields #-}
+
 import           Control.Concurrent ( threadDelay )
 import           Control.Monad.State
 import           Control.Lens
@@ -42,10 +44,12 @@ checkBounds (xLim, yLim) = do
     ballDy .= dy'
 
 
-loop :: ((Int, Int), (Int, Int)) -> StateT Pong IO ()
-loop (xLim, yLim) = do
+loop :: StateT Pong IO ()
+loop = do
     pong <- get
-    hoistState $ checkBounds (xLim, yLim)
+    let xLim = view playFieldWidth pong
+        yLim = view playFieldHeight pong
+    hoistState $ checkBounds ((1, xLim), (1, yLim))
     nextPong <- get
     let x  = view ballX pong
         y  = view ballY pong
@@ -53,7 +57,7 @@ loop (xLim, yLim) = do
         y' = view ballY nextPong
 
     liftIO $ updateDisplay (x, y) (x', y')
-    loop (xLim, yLim)
+    loop
 
 
 updateDisplay :: (Int, Int) -> (Int, Int) -> IO ()
@@ -79,12 +83,31 @@ initialize = do
     hFlush stdout
     --move 1 1
     --draw "X"
-    let initialBall  = Ball (Point 1 1) (Velocity 1 1)
-        leftPaddle   = Paddle (Point 1 30) 30
-        rightPaddle  = Paddle (Point 80 30) 30
-        initialState = Pong initialBall (leftPaddle, rightPaddle)
+    let initialBall  = Ball { _position = Point 1 1
+                            , _velocity = Velocity 1 1
+                            }
+        leftPaddle   = Paddle { _position = Point 1 30
+                              , _height   = 30
+                              }
+        rightPaddle  = Paddle { _position = Point 80 30
+                              , _height   = 30
+                              }
+        fieldSize = PlayFieldSize { _width      = 80
+                                  , _height     = 25
+                                  , _resolution = 60  -- ?
+                                  }
+        fieldColors = Colors { _background = ColorRGB 0 0 0
+                             , _foreground = ColorRGB 255 255 255
+                             }
+        playFieldSpecs = PlayFieldSpecs { _size  = fieldSize
+                                        , _color = fieldColors
+                                        }
+        initialState = Pong { _ball           = initialBall
+                            , _paddles        = (leftPaddle, rightPaddle)
+                            , _playFieldSpecs = playFieldSpecs
+                            }
     --putStrLn $ show (take 10 (states ((1,80),(1,25)) initialState))
-    evalStateT (loop ((1,80),(1,25))) initialState
+    evalStateT loop initialState
 
 main :: IO ()
 main = initialize
