@@ -105,6 +105,7 @@ initialize = do
         initialState = Pong { _ball           = initialBall
                             , _paddles        = (leftPaddle, rightPaddle)
                             , _playFieldSpecs = playFieldSpecs
+                            , _score          = (0, 0)
                             }
     --putStrLn $ show (take 10 (states ((1,80),(1,25)) initialState))
     evalStateT loop initialState
