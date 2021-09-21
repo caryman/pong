@@ -1,6 +1,7 @@
 {-# LANGUAGE DisambiguateRecordFields #-}
 
 import           Control.Concurrent ( threadDelay )
+import           Control.Monad.Morph
 import           Control.Monad.State
 import           Control.Lens
 import           Lib
@@ -9,11 +10,6 @@ import           System.IO
 
 hiLimit = 80
 loLimit = 1
-
--- | From https://stackoverflow.com/questions/17325485/combining-statet-io-with-state
-hoistState :: Monad m => State s a -> StateT s m a
-hoistState = state . runState
-
 
 {- ===========================
    boundary function checks boundary conditions
@@ -49,7 +45,7 @@ loop = do
     pong <- get
     let xLim = view playFieldWidth pong
         yLim = view playFieldHeight pong
-    hoistState $ checkBounds ((1, xLim), (1, yLim))
+    hoist generalize $ checkBounds ((1, xLim), (1, yLim))
     nextPong <- get
     let x  = view ballX pong
         y  = view ballY pong
