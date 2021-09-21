@@ -29,6 +29,7 @@ data Paddle = Paddle { _position :: Point
 data Pong = Pong { _ball :: Ball
                  , _paddles :: (Paddle, Paddle)
                  , _playFieldSpecs :: PlayFieldSpecs
+                 , _score :: (Int, Int)
                  } deriving (Eq, Show)
 
 data ColorRGB = RGB { _red :: Int
@@ -95,4 +96,9 @@ playFieldWidth = playFieldSpecs . size . width
 playFieldHeight :: Lens' Pong Int
 playFieldHeight = playFieldSpecs . size . height
 
+player1Score :: Lens' Pong Int
+player1Score = score . _1
+
+player2Score :: Lens' Pong Int
+player2Score = score . _2
 
