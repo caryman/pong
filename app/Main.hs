@@ -61,7 +61,6 @@ updateDisplay (x, y) (x', y') = do
     move x' y'
     draw "o"
     erase x y
-    hFlush stdout
     threadDelay 50000
 
 
@@ -75,10 +74,8 @@ states limits initState = iterate (state' limits) initState
 initialize :: IO ()
 initialize = do
     cls
+    hSetBuffering stdout NoBuffering
     putStr "\ESC[?25l" -- hide cursor
-    hFlush stdout
-    --move 1 1
-    --draw "X"
     let initialBall  = Ball { _position = Point 1 1
                             , _velocity = Velocity 1 1
                             }
