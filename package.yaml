@@ -24,6 +24,7 @@ dependencies:
 - lens
 - mmorph
 - mtl
+- ncurses >= 0.2.16
 
 library:
   source-dirs: src

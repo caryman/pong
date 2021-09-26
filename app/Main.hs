@@ -4,6 +4,7 @@ import           Control.Concurrent ( threadDelay )
 import           Control.Monad.Morph
 import           Control.Monad.State
 import           Control.Lens
+import           UI.NCurses
 import           Lib
 import           Pong
 import           System.IO
@@ -43,6 +44,12 @@ checkBounds (xLim, yLim) = do
 loop :: StateT Pong IO ()
 loop = do
     pong <- get
+
+    --w <- defaultWindow
+    --ev <- getEvent w (Just 0)
+    --case ev of
+    --    EventCharacter 'q' -> quit
+
     let xLim = view playFieldWidth pong
         yLim = view playFieldHeight pong
     hoist generalize $ checkBounds ((1, xLim), (1, yLim))
@@ -75,15 +82,16 @@ initialize :: IO ()
 initialize = do
     cls
     hSetBuffering stdout NoBuffering
-    putStr "\ESC[?25l" -- hide cursor
+    setEcho False
+    putStr "\ESC[?25l" -- hide cursor - replace with ncurses cmd
     let initialBall  = Ball { _position = Point 1 1
                             , _velocity = Velocity 1 1
                             }
-        leftPaddle   = Paddle { _position = Point 1 30
-                              , _height   = 30
+        leftPaddle   = Paddle { _position = Point 1 5
+                              , _height   = 6
                               }
-        rightPaddle  = Paddle { _position = Point 80 30
-                              , _height   = 30
+        rightPaddle  = Paddle { _position = Point 80 5
+                              , _height   = 6
                               }
         fieldSize = PlayFieldSize { _width      = 80
                                   , _height     = 25
@@ -104,8 +112,11 @@ initialize = do
     evalStateT loop initialState
 
 main :: IO ()
-main = initialize
+main = runCurses $ initialize
 
+quit :: IO ()
+quit = cls
+    
 
 --print("\u001B[?25h") // display cursor
 --print("\u001B[?25l") -- hide cursor
