@@ -41,15 +41,9 @@ checkBounds (xLim, yLim) = do
     ballDy .= dy'
 
 
-loop :: StateT Pong IO ()
+loop :: StateT Pong Curses ()
 loop = do
     pong <- get
-
-    --w <- defaultWindow
-    --ev <- getEvent w (Just 0)
-    --case ev of
-    --    EventCharacter 'q' -> quit
-
     let xLim = view playFieldWidth pong
         yLim = view playFieldHeight pong
     hoist generalize $ checkBounds ((1, xLim), (1, yLim))
@@ -68,6 +62,13 @@ updateDisplay (x, y) (x', y') = do
     move x' y'
     draw "o"
     erase x y
+--    w <- defaultWindow
+--    updateWindow w $ do
+--        moveCursor x' y'
+--        drawString "o"
+--        moveCursor x y
+--        drawString " "
+--    render
     threadDelay 50000
 
 
@@ -78,12 +79,16 @@ states :: ((Int, Int), (Int, Int)) -> Pong -> [Pong]
 states limits initState = iterate (state' limits) initState
 --states limits = iterate (state' limits) --remove initState, point free style
 
-initialize :: IO ()
+initialize :: Curses ()
 initialize = do
-    cls
-    hSetBuffering stdout NoBuffering
+    setCBreak True
     setEcho False
-    putStr "\ESC[?25l" -- hide cursor - replace with ncurses cmd
+    setCursorMode CursorInvisible  
+    w <- defaultWindow
+    updateWindow w $ do
+        clear  
+    render
+
     let initialBall  = Ball { _position = Point 1 1
                             , _velocity = Velocity 1 1
                             }
@@ -108,15 +113,24 @@ initialize = do
                             , _playFieldSpecs = playFieldSpecs
                             , _score          = (0, 0)
                             }
-    --putStrLn $ show (take 10 (states ((1,80),(1,25)) initialState))
+
     evalStateT loop initialState
 
+
 main :: IO ()
-main = runCurses $ initialize
+main = runStateT . runCurses $ initialize
 
-quit :: IO ()
-quit = cls
+quit :: Curses ()
+quit = do
+    w <- defaultWindow
+    updateWindow w $ do
+        clear  
+    render
     
-
+-- scrap bits
 --print("\u001B[?25h") // display cursor
 --print("\u001B[?25l") -- hide cursor
+--putStrLn $ show (take 10 (states ((1,80),(1,25)) initialState))
+
+-- ghcup
+-- haskell language server
