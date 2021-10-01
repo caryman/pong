@@ -32,3 +32,37 @@ To do: (not in any particular order)
 19. Add moving targets
 20. Add moving obstructions
 21. Add option to change size of paddles
+
+
+# Setup (optional)
+Due to system library dependencies on ncurses and some implementation issues with the haskell-ncurses library,
+building on Ubuntu is more reliable than other Linux distributions.
+
+## Prerequisites
+* VirtualBox - https://www.virtualbox.org/
+* Vagrant - https://www.vagrantup.com/
+
+## Steps
+1. In the project directory, run the following to configure and provision a VM with ncurses and Haskell Stack
+```
+vagrant up
+```
+
+2. ssh to the VM
+
+```
+vagrant ssh
+```
+
+3. Switch to the /vagrant directory which is shared folder between your host machine and the VM
+
+```
+cd /vagrant
+```
+
+4. Build using Haskell Stack
+
+```
+stack build
+```
+
