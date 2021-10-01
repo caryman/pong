@@ -1,2 +1,5 @@
 .stack-work/
 *~
+
+# Using hpack, cabal file is generated from package.yaml
+/*.cabal
