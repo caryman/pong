@@ -47,8 +47,8 @@ data Color = ColorRGB Int Int Int | ColorHSV Int Int Int | ColorHex Int deriving
 data Colors = Colors { _background :: Color
                      , _foreground :: Color } deriving (Eq, Show)
 
-data PlayFieldSize = PlayFieldSize { _width :: Int
-                                   , _height :: Int
+data PlayFieldSize = PlayFieldSize { _width :: Integer
+                                   , _height :: Integer
                                    , _resolution :: Int } deriving (Eq, Show)
 
 data PlayFieldSpecs = PlayFieldSpecs { _size :: PlayFieldSize
@@ -90,10 +90,10 @@ ballDx = ball . velocity . dx
 ballDy :: Lens' Pong Int
 ballDy = ball . velocity . dy
 
-playFieldWidth :: Lens' Pong Int
+playFieldWidth :: Lens' Pong Integer
 playFieldWidth = playFieldSpecs . size . width
 
-playFieldHeight :: Lens' Pong Int
+playFieldHeight :: Lens' Pong Integer
 playFieldHeight = playFieldSpecs . size . height
 
 player1Score :: Lens' Pong Int

@@ -9,9 +9,6 @@ import           Lib
 import           Pong
 import           System.IO
 
-hiLimit = 80
-loLimit = 1
-
 {- ===========================
    boundary function checks boundary conditions
    low: lower limit
@@ -44,32 +41,33 @@ checkBounds (xLim, yLim) = do
 loop :: StateT Pong Curses ()
 loop = do
     pong <- get
-    let xLim = view playFieldWidth pong
-        yLim = view playFieldHeight pong
-    hoist generalize $ checkBounds ((1, xLim), (1, yLim))
+    let xLim = fromIntegral $ view playFieldWidth pong
+        yLim = fromIntegral $ view playFieldHeight pong
+    hoist generalize $ checkBounds ((0, xLim - 1), (0, yLim - 1))
     nextPong <- get
     let x  = view ballX pong
         y  = view ballY pong
         x' = view ballX nextPong
         y' = view ballY nextPong
 
-    liftIO $ updateDisplay (x, y) (x', y')
+    lift $ updateDisplay (x, y) (x', y')
+    liftIO $ threadDelay 50000
+
     loop
 
 
-updateDisplay :: (Int, Int) -> (Int, Int) -> IO ()
+updateDisplay :: (Int, Int) -> (Int, Int) -> Curses ()
 updateDisplay (x, y) (x', y') = do
-    move x' y'
-    draw "o"
-    erase x y
---    w <- defaultWindow
---    updateWindow w $ do
---        moveCursor x' y'
---        drawString "o"
---        moveCursor x y
---        drawString " "
---    render
-    threadDelay 50000
+--    move x' y'
+--    draw "o"
+--    erase x y
+    w <- defaultWindow
+    updateWindow w $ do
+        moveCursor (fromIntegral y') (fromIntegral x')
+        drawString "o"
+        moveCursor (fromIntegral y) (fromIntegral x)
+        drawString " "
+    render
 
 
 state' :: ((Int, Int), (Int, Int)) -> Pong -> Pong
@@ -79,52 +77,58 @@ states :: ((Int, Int), (Int, Int)) -> Pong -> [Pong]
 states limits initState = iterate (state' limits) initState
 --states limits = iterate (state' limits) --remove initState, point free style
 
-initialize :: Curses ()
+initialState :: Pong
+initialState = Pong { _ball           = initialBall
+                    , _paddles        = (leftPaddle, rightPaddle)
+                    , _playFieldSpecs = playFieldSpecs
+                    , _score          = (0, 0)
+                    }
+  where
+    initialBall  = Ball { _position = Point 1 1
+                        , _velocity = Velocity 1 1
+                        }
+    leftPaddle   = Paddle { _position = Point 1 5
+                          , _height   = 6
+                          }
+    rightPaddle  = Paddle { _position = Point 80 5
+                          , _height   = 6
+                          }
+    fieldSize    = PlayFieldSize { _width      = 80
+                                 , _height     = 25
+                                 , _resolution = 60  -- ?
+                                 }
+    fieldColors  = Colors { _background = ColorRGB 0 0 0
+                          , _foreground = ColorRGB 255 255 255
+                          }
+    playFieldSpecs = PlayFieldSpecs { _size  = fieldSize
+                                    , _color = fieldColors
+                                    }
+
+initialize :: Curses (Integer, Integer)
 initialize = do
     setCBreak True
     setEcho False
-    setCursorMode CursorInvisible  
+    setCursorMode CursorInvisible
     w <- defaultWindow
-    updateWindow w $ do
-        clear  
+    (rows, cols) <- updateWindow w $ do
+        clear
+        windowSize
     render
-
-    let initialBall  = Ball { _position = Point 1 1
-                            , _velocity = Velocity 1 1
-                            }
-        leftPaddle   = Paddle { _position = Point 1 5
-                              , _height   = 6
-                              }
-        rightPaddle  = Paddle { _position = Point 80 5
-                              , _height   = 6
-                              }
-        fieldSize = PlayFieldSize { _width      = 80
-                                  , _height     = 25
-                                  , _resolution = 60  -- ?
-                                  }
-        fieldColors = Colors { _background = ColorRGB 0 0 0
-                             , _foreground = ColorRGB 255 255 255
-                             }
-        playFieldSpecs = PlayFieldSpecs { _size  = fieldSize
-                                        , _color = fieldColors
-                                        }
-        initialState = Pong { _ball           = initialBall
-                            , _paddles        = (leftPaddle, rightPaddle)
-                            , _playFieldSpecs = playFieldSpecs
-                            , _score          = (0, 0)
-                            }
-
-    evalStateT loop initialState
-
+    return (rows, cols)
 
 main :: IO ()
-main = runStateT . runCurses $ initialize
+main = do
+  void . runCurses . flip runStateT initialState $ do
+    (rows, cols) <- lift initialize
+    playFieldHeight .= rows
+    playFieldWidth .= cols
+    loop
 
 quit :: Curses ()
 quit = do
     w <- defaultWindow
     updateWindow w $ do
-        clear  
+        clear
     render
     
 -- scrap bits
