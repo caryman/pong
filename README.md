@@ -35,21 +35,21 @@ To do: (not in any particular order)
 
 
 # Setup (optional)
+## Using Vagrant to provision a VM
 Due to system library dependencies on ncurses and some implementation issues with the haskell-ncurses library,
 building on Ubuntu is more reliable than other Linux distributions.
 
-## Prerequisites
+### Prerequisites
 * VirtualBox - https://www.virtualbox.org/
 * Vagrant - https://www.vagrantup.com/
 
-## Steps
+### Steps
 1. In the project directory, run the following to configure and provision a VM with ncurses and Haskell Stack
 ```
 vagrant up
 ```
 
 2. ssh to the VM
-
 ```
 vagrant ssh
 ```
@@ -61,8 +61,37 @@ cd /vagrant
 ```
 
 4. Build using Haskell Stack
-
 ```
 stack build
+```
+
+## Using Docker to run a container
+### Prerequisites
+* Docker
+
+### Steps
+1. Build `pong-dev` Docker image which is based on Ubuntu and includes ncurses and Haskell Stack
+```
+cd docker
+docker build -t pong-dev:latest .
+cd ..
+```
+
+2. Run container with a volume mount containing project source code
+```
+docker run -it -v `pwd`:/src --name pong-dev pong-dev:latest bash
+```
+
+3. Build using Haskell Stack
+```
+cd /src
+stack build
+```
+
+If you exit the container, it will be in the "Exited" state, but you can simply start it again.
+
+```
+docker start pong-dev
+docker exec -it pong-dev bash
 ```
 

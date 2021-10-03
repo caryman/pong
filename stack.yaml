@@ -66,3 +66,8 @@ extra-deps:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+
+
+# See https://github.com/commercialhaskell/stack/issues/3348
+# workaround for --allow-different-user flags for every stack invokation
+allow-different-user: yes
