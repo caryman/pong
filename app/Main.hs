@@ -40,27 +40,36 @@ checkBounds (xLim, yLim) = do
 
 loop :: StateT Pong Curses ()
 loop = do
-    pong <- get
-    let xLim = fromIntegral $ view playFieldWidth pong
-        yLim = fromIntegral $ view playFieldHeight pong
-    hoist generalize $ checkBounds ((0, xLim - 1), (0, yLim - 1))
-    nextPong <- get
-    let x  = view ballX pong
-        y  = view ballY pong
-        x' = view ballX nextPong
-        y' = view ballY nextPong
+    if checkKeyboard
+       then quit
+       else do
+          pong <- get
+          let xLim = fromIntegral $ view playFieldWidth pong
+              yLim = fromIntegral $ view playFieldHeight pong
+          hoist generalize $ checkBounds ((0, xLim - 1), (0, yLim - 1))
+          nextPong <- get
+          let x  = view ballX pong
+              y  = view ballY pong
+              x' = view ballX nextPong
+              y' = view ballY nextPong
 
-    lift $ updateDisplay (x, y) (x', y')
-    liftIO $ threadDelay 50000
+          lift $ updateDisplay (x, y) (x', y')
+          liftIO $ threadDelay 50000
 
-    loop
+          loop
 
+checkKeyboard :: Bool 
+checkKeyboard = do
+    w <- defaultWindow
+    e <- getEvent w Nothing
+    case e of
+       Nothing -> False
+       Just ev' -> if ev' == EventCharacter 'q'
+          then True
+          else False
 
 updateDisplay :: (Int, Int) -> (Int, Int) -> Curses ()
 updateDisplay (x, y) (x', y') = do
---    move x' y'
---    draw "o"
---    erase x y
     w <- defaultWindow
     updateWindow w $ do
         moveCursor (fromIntegral y') (fromIntegral x')
