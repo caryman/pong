@@ -30,6 +30,7 @@ data Pong = Pong { _ball :: Ball
                  , _paddles :: (Paddle, Paddle)
                  , _playFieldSpecs :: PlayFieldSpecs
                  , _score :: (Int, Int)
+                 , _speed :: Int
                  } deriving (Eq, Show)
 
 data ColorRGB = RGB { _red :: Int
@@ -101,6 +102,9 @@ player1Score = score . _1
 
 player2Score :: Lens' Pong Int
 player2Score = score . _2
+
+playFieldSpeed :: Lens' Pong Int
+playFieldSpeed = speed
 
 data KeyAction = NoAction | Quit | LPaddleUp | LPaddleDn | RPaddleUp | RPaddleDn | Restart | Pause | Faster | Slower deriving (Eq, Show) 
 

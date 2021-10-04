@@ -43,9 +43,17 @@ loop = do
     k <- lift checkKeyboard
     if k == Quit then lift quit
     else do
-        --case k of
-        --   Slower -> 
         pong <- get
+        case k of
+           Slower -> do
+                let currentSpeed = view playFieldSpeed pong
+                    newSpeed = currentSpeed + 1000
+                playFieldSpeed .= newSpeed
+           Faster -> do
+                let currentSpeed = view playFieldSpeed pong
+                    newSpeed = currentSpeed - 1000
+                playFieldSpeed .= newSpeed
+           _ -> playFieldSpeed .= view playFieldSpeed pong
         let xLim = fromIntegral $ view playFieldWidth pong
             yLim = fromIntegral $ view playFieldHeight pong
         hoist generalize $ checkBounds ((0, xLim - 1), (0, yLim - 1))
@@ -56,9 +64,10 @@ loop = do
             y' = view ballY nextPong
 
         lift $ updateDisplay (x, y) (x', y')
-        liftIO $ threadDelay 50000
+        liftIO $ threadDelay $ view playFieldSpeed pong
 
         loop
+
 
 checkKeyboard :: Curses KeyAction
 checkKeyboard = do
@@ -76,6 +85,7 @@ checkKeyboard = do
        Just (EventCharacter '-') -> Slower
        Just (EventCharacter '=') -> Faster
        Just _ -> NoAction
+
 
 updateDisplay :: (Int, Int) -> (Int, Int) -> Curses ()
 updateDisplay (x, y) (x', y') = do
@@ -95,11 +105,13 @@ states :: ((Int, Int), (Int, Int)) -> Pong -> [Pong]
 states limits initState = iterate (state' limits) initState
 --states limits = iterate (state' limits) --remove initState, point free style
 
+
 initialState :: Pong
 initialState = Pong { _ball           = initialBall
                     , _paddles        = (leftPaddle, rightPaddle)
                     , _playFieldSpecs = playFieldSpecs
                     , _score          = (0, 0)
+                    , _speed          = 50000
                     }
   where
     initialBall  = Ball { _position = Point 1 1
