@@ -41,8 +41,10 @@ checkBounds (xLim, yLim) = do
 loop :: StateT Pong Curses ()
 loop = do
     k <- lift checkKeyboard
-    if k then lift quit
+    if k == Quit then lift quit
     else do
+        --case k of
+        --   Slower -> 
         pong <- get
         let xLim = fromIntegral $ view playFieldWidth pong
             yLim = fromIntegral $ view playFieldHeight pong
@@ -58,15 +60,22 @@ loop = do
 
         loop
 
-checkKeyboard :: Curses Bool
+checkKeyboard :: Curses KeyAction
 checkKeyboard = do
     w <- defaultWindow
-    e <- getEvent w Nothing
+    e <- getEvent w (Just 0)
     return $ case e of
-       Nothing -> False
-       Just ev' -> if ev' == EventCharacter 'q'
-          then True
-          else False
+       Nothing -> NoAction
+       Just (EventCharacter 'q') -> Quit
+       Just (EventCharacter 'r') -> Restart
+       Just (EventCharacter 'l') -> RPaddleUp
+       Just (EventCharacter 'k') -> RPaddleDn
+       Just (EventCharacter 'a') -> LPaddleUp
+       Just (EventCharacter 's') -> LPaddleDn
+       Just (EventCharacter 'p') -> Pause
+       Just (EventCharacter '-') -> Slower
+       Just (EventCharacter '=') -> Faster
+       Just _ -> NoAction
 
 updateDisplay :: (Int, Int) -> (Int, Int) -> Curses ()
 updateDisplay (x, y) (x', y') = do

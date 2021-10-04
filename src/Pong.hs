@@ -102,3 +102,5 @@ player1Score = score . _1
 player2Score :: Lens' Pong Int
 player2Score = score . _2
 
+data KeyAction = NoAction | Quit | LPaddleUp | LPaddleDn | RPaddleUp | RPaddleDn | Restart | Pause | Faster | Slower deriving (Eq, Show) 
+
