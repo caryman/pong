@@ -5,9 +5,9 @@ import           Control.Monad.Morph
 import           Control.Monad.State
 import           Control.Lens
 import           UI.NCurses
-import           Lib
 import           Pong
 import           System.IO
+import           Data.Char
 
 {- ===========================
    boundary function checks boundary conditions
@@ -90,7 +90,9 @@ checkKeyboard = do
 updateDisplay :: (Int, Int) -> (Int, Int) -> Curses ()
 updateDisplay (x, y) (x', y') = do
     w <- defaultWindow
+    ballColor <- newColorID ColorWhite ColorBlack 5
     updateWindow w $ do
+        setColor ballColor
         moveCursor (fromIntegral y') (fromIntegral x')
         drawString "o"
         moveCursor (fromIntegral y) (fromIntegral x)
@@ -146,12 +148,49 @@ initialize = do
     render
     return (rows, cols)
 
+drawPaddle :: Integer -> Integer -> Curses ()
+drawPaddle x y = do
+    w <- defaultWindow
+    paddleColor <- newColorID ColorGreen ColorBlack 6
+    updateWindow w $ do
+        --mapM_ drawBlock $ zip (repeat 79) [5..10]
+        drawBlock (x, y) paddleColor
+    render
+
+drawBlock :: (Integer, Integer) -> ColorID -> Update ()
+drawBlock (x, y) paddleColor = do
+    setColor paddleColor
+    moveCursor y (x-1)
+    drawGlyph glyphCornerUL
+    moveCursor (y+1) (x-1)
+    drawGlyph glyphLineV
+    moveCursor (y+2) (x-1)
+    drawGlyph glyphLineV
+    moveCursor (y+3) (x-1)
+    drawGlyph glyphLineV
+    moveCursor (y+4) (x-1)
+    drawGlyph glyphCornerLL
+
+    moveCursor y x
+    drawGlyph glyphCornerUR
+    moveCursor (y+1) x
+    drawGlyph glyphLineV
+    moveCursor (y+2) x
+    drawGlyph glyphLineV
+    moveCursor (y+3) x
+    drawGlyph glyphLineV
+    moveCursor (y+4) x
+    drawGlyph glyphCornerLR
+    -- drawGlyph glyphBlock
+   
 main :: IO ()
 main = do
   void . runCurses . flip runStateT initialState $ do
     (rows, cols) <- lift initialize
     playFieldHeight .= rows
     playFieldWidth .= cols
+    lift $ drawPaddle (cols-1) 10 --(round ( rows/ (2 :: Integer) ) )
+    lift $ drawPaddle 1 10 --(round ( rows/ (2 :: Integer) ) )
     loop
 
 quit :: Curses ()
