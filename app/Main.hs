@@ -41,32 +41,58 @@ checkBounds (xLim, yLim) = do
 loop :: StateT Pong Curses ()
 loop = do
     k <- lift checkKeyboard
-    if k == Quit then lift quit
-    else do
-        pong <- get
-        case k of
-           Slower -> do
-                let currentSpeed = view playFieldSpeed pong
-                    newSpeed = currentSpeed + 1000
-                playFieldSpeed .= newSpeed
-           Faster -> do
-                let currentSpeed = view playFieldSpeed pong
-                    newSpeed = currentSpeed - 1000
-                playFieldSpeed .= newSpeed
-           _ -> playFieldSpeed .= view playFieldSpeed pong
-        let xLim = fromIntegral $ view playFieldWidth pong
-            yLim = fromIntegral $ view playFieldHeight pong
-        hoist generalize $ checkBounds ((0, xLim - 1), (0, yLim - 1))
-        nextPong <- get
-        let x  = view ballX pong
-            y  = view ballY pong
-            x' = view ballX nextPong
-            y' = view ballY nextPong
+    pong <- get
+    let xLim = fromIntegral $ view playFieldWidth pong
+        yLim = fromIntegral $ view playFieldHeight pong
+        rPad = view rightPaddle pong
+        lPad = view leftPaddle pong
+    case k of 
+       Quit -> lift quit
+       Slower -> do
+               let currentSpeed = view playFieldSpeed pong
+                   newSpeed = currentSpeed + 1000
+               playFieldSpeed .= newSpeed
+       Faster -> do
+               let currentSpeed = view playFieldSpeed pong
+                   newSpeed = currentSpeed - 1000
+               playFieldSpeed .= newSpeed
+       RPaddleUp ->
+               rightPaddleY -= movePaddle RPaddleUp rPad 0
+       RPaddleDn ->
+               rightPaddleY += movePaddle RPaddleDn rPad yLim
+       LPaddleUp ->
+               leftPaddleY -= movePaddle LPaddleUp lPad 0
+       LPaddleDn ->
+               leftPaddleY += movePaddle LPaddleDn lPad yLim 
+       _ -> playFieldSpeed .= view playFieldSpeed pong  
 
-        lift $ updateDisplay (x, y) (x', y')
-        liftIO $ threadDelay $ view playFieldSpeed pong
+    hoist generalize $ checkBounds ((0, xLim - 1), (0, yLim - 1))
 
-        loop
+    nextPong <- get
+    let x  = view ballX pong
+        y  = view ballY pong
+        x' = view ballX nextPong
+        y' = view ballY nextPong
+        pL = view leftPaddle pong
+        pR = view rightPaddle pong
+        pL' = view leftPaddle nextPong
+        pR' = view rightPaddle nextPong
+
+    lift $ updateDisplay (x, y) (x', y') (pL, pR) (pL', pR')
+    liftIO $ threadDelay $ view playFieldSpeed pong
+
+    loop
+
+
+movePaddle :: KeyAction -> Paddle -> Int -> Int
+movePaddle k p limit = do
+    let y = view paddleY p
+    case k of
+        RPaddleUp -> if y < limit then 0 else y-1
+        RPaddleDn -> if y > limit then limit else y+1
+        LPaddleUp -> if y < limit then 0 else y-1
+        LPaddleDn -> if y > limit then limit else y+1
+        _ -> 0  -- ??
 
 
 checkKeyboard :: Curses KeyAction
@@ -87,18 +113,25 @@ checkKeyboard = do
        Just _ -> NoAction
 
 
-updateDisplay :: (Int, Int) -> (Int, Int) -> Curses ()
-updateDisplay (x, y) (x', y') = do
+updateDisplay :: (Int, Int) -> (Int, Int) -> (Paddle, Paddle) -> (Paddle, Paddle) -> Curses ()
+updateDisplay (x, y) (x', y') (pL, pR) (pL', pR') = do
+    let pLX = view leftPaddleX pL
+        pRX = view rightPaddleX pR
+        pLX' = view leftPaddleX pL'
+        pRX' = view rightPaddleX pR'
+        pLY = view leftPaddleY pL
+        pRY = view rightPaddleY pR
+        pLY' = view leftPaddleY pL'
+        pRY' = view rightPaddleY pR'
     w <- defaultWindow
     ballColor <- newColorID ColorWhite ColorBlack 5
     updateWindow w $ do
         setColor ballColor
-        moveCursor (fromIntegral y') (fromIntegral x')
+        moveCursor (fromIntegral x') (fromIntegral x')
         drawString "o"
         moveCursor (fromIntegral y) (fromIntegral x)
         drawString " "
     render
-
 
 state' :: ((Int, Int), (Int, Int)) -> Pong -> Pong
 state' = execState . checkBounds
@@ -185,13 +218,21 @@ drawBlock (x, y) paddleColor = do
    
 main :: IO ()
 main = do
-  void . runCurses . flip runStateT initialState $ do
-    (rows, cols) <- lift initialize
-    playFieldHeight .= rows
-    playFieldWidth .= cols
-    lift $ drawPaddle (cols-1) 10 --(round ( rows/ (2 :: Integer) ) )
-    lift $ drawPaddle 1 10 --(round ( rows/ (2 :: Integer) ) )
-    loop
+    void . runCurses . flip runStateT initialState $ do
+        (rows, cols) <- lift initialize
+        playFieldHeight .= rows
+        playFieldWidth .= cols
+
+        -- set initial paddle positions based on the window dimensions
+        pong <- get
+        leftPaddleX  .= padding
+        leftPaddleY  .= (fromIntegral rows - (view leftPaddleHeight pong)) `div` 2
+        rightPaddleX .= (fromIntegral cols - padding)
+        rightPaddleY .= (fromIntegral rows - (view rightPaddleHeight pong)) `div` 2
+
+        loop
+    where
+        padding = 2
 
 quit :: Curses ()
 quit = do

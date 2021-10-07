@@ -8,6 +8,8 @@ module Pong where
 
 import Control.Lens
 
+type Game = StateT Pong Curses ()
+
 data Point = Point { _x :: Int
                    , _y :: Int
                    } deriving (Eq, Show)
@@ -105,6 +107,36 @@ player2Score = score . _2
 
 playFieldSpeed :: Lens' Pong Int
 playFieldSpeed = speed
+
+leftPaddle :: Lens' Pong Paddle
+leftPaddle = paddles . _1
+
+leftPaddleX :: Lens' Pong Int
+leftPaddleX = leftPaddle . position . x
+
+leftPaddleY :: Lens' Pong Int
+leftPaddleY = leftPaddle . position . y
+
+leftPaddleHeight :: Lens' Pong Int
+leftPaddleHeight = leftPaddle . height
+
+rightPaddle :: Lens' Pong Paddle
+rightPaddle = paddles . _2
+
+rightPaddleX :: Lens' Pong Int
+rightPaddleX = rightPaddle . position . x
+
+rightPaddleY :: Lens' Pong Int
+rightPaddleY = rightPaddle . position . y
+
+rightPaddleHeight :: Lens' Pong Int
+rightPaddleHeight  = rightPaddle . height
+
+paddleX :: Lens' Paddle Int
+paddleX = position . x
+
+paddleY :: Lens' Paddle Int
+paddleY = position . y
 
 data KeyAction = NoAction | Quit | LPaddleUp | LPaddleDn | RPaddleUp | RPaddleDn | Restart | Pause | Faster | Slower deriving (Eq, Show) 
 
