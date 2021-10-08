@@ -2,7 +2,6 @@
 
 import           Control.Concurrent ( threadDelay )
 import           Control.Monad.Loops
-import           Control.Monad.Morph
 import           Control.Monad.State
 import           Control.Lens
 import           UI.NCurses
@@ -23,7 +22,7 @@ boundary (low, hi) (pos, inc)
    | (pos == low && inc < 0) || (pos == hi && inc > 0) = (pos - inc, -inc)
    | otherwise = (pos + inc, inc)
 
-checkBounds :: ((Integer, Integer), (Integer, Integer)) -> State Pong ()
+checkBounds :: ((Integer, Integer), (Integer, Integer)) -> StateT Pong Curses ()
 checkBounds (xLim, yLim) = do
     p <- get
     let (x, y)   = p ^. ball . position
@@ -55,7 +54,7 @@ processInput k = do
             (leftPaddle . position . _y)  += movePaddle LPaddleDn pong (yLim-6)
         _ -> return ()
 
-    hoist generalize $ checkBounds ((0, xLim - 1), (0, yLim - 1))
+    checkBounds ((0, xLim - 1), (0, yLim - 1))
     nextPong <- get
     lift $ updateDisplay (pong ^. ball . position) (nextPong ^. ball . position) pong nextPong
 
