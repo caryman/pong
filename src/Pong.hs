@@ -8,7 +8,7 @@ module Pong where
 
 import Control.Lens
 
-type Game = StateT Pong Curses ()
+--type Game = StateT Pong Curses ()
 
 data Point = Point { _x :: Int
                    , _y :: Int
