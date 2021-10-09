@@ -30,6 +30,9 @@ checkBounds (xLim, yLim) = do
         (x', dx') = boundary xLim (x, vx)
         (y', dy') = boundary yLim (y, vy)
 
+    (score . _1) += if x == (snd xLim) then 1 else 0
+    (score . _2) += if x == (fst xLim) then 1 else 0
+
     (ball . position) .= (x', y')
     (ball . velocity) .= (dx', dy')
 
@@ -105,7 +108,8 @@ updateDisplay (x, y) (x', y') p p' = do
         clear
         setColor ballPosColor
         moveCursor 0 40
-        drawString (show x' ++ " " ++ show y')
+        -- drawString (show x' ++ " " ++ show y')
+        drawString (show (p' ^. score . _1) ++ "-" ++ show (p ^. score . _2))
         setColor paddlePosColor
         moveCursor 0 2
         drawString (show pLX' ++ " " ++ show pLY')
