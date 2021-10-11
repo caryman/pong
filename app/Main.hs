@@ -114,8 +114,8 @@ updateDisplay (x, y) (x', y') p p' = do
         setColor ballColor
         moveCursor y' x'
         drawString "o"
-        moveCursor y x
-        drawString " "
+        -- moveCursor y x
+        -- drawString " "
         -- drawBlock (pRX, pRY) blankColor   -- erase right paddle
         -- drawBlock (pLX, pLY) blankColor   -- erase left paddle
         drawBlock (pRX', pRY') paddleColor  -- draw right paddle
