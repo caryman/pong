@@ -22,7 +22,7 @@ boundary (low, hi) (pos, inc)
    | (pos == low && inc < 0) || (pos == hi && inc > 0) = (pos - inc, -inc)
    | otherwise = (pos + inc, inc)
 
-checkBounds :: ((Integer, Integer), (Integer, Integer)) -> StateT Pong Curses ()
+checkBounds :: ((Integer, Integer), (Integer, Integer)) -> Pong ()
 checkBounds (xLim, yLim) = do
     p <- get
     let (x, y)   = p ^. ball . position
@@ -36,7 +36,7 @@ checkBounds (xLim, yLim) = do
     (ball . position) .= (x', y')
     (ball . velocity) .= (dx', dy')
 
-processInput :: KeyAction -> StateT Pong Curses ()
+processInput :: KeyAction -> Pong ()
 processInput k = do
     pong <- get
     let xLim = pong ^. playFieldSpecs . size . width
@@ -62,7 +62,7 @@ processInput k = do
     lift $ updateDisplay (pong ^. ball . position) (nextPong ^. ball . position) pong nextPong
 
 
-movePaddle :: KeyAction -> Pong -> Integer -> Integer
+movePaddle :: KeyAction -> PongState -> Integer -> Integer
 movePaddle k p limit = do
     let yR = p ^. rightPaddle . position . _y
         yL = p ^. leftPaddle . position . _y
@@ -92,7 +92,7 @@ checkKeyboard = do
        Just _ -> NoAction
 
 
-updateDisplay :: (Integer, Integer) -> (Integer, Integer) -> Pong -> Pong -> Curses ()
+updateDisplay :: (Integer, Integer) -> (Integer, Integer) -> PongState -> PongState -> Curses ()
 updateDisplay (x, y) (x', y') p p' = do
     let (pLX, pLY)   = p  ^. leftPaddle  . position
         (pRX, pRY)   = p  ^. rightPaddle . position
@@ -127,33 +127,40 @@ updateDisplay (x, y) (x', y') p p' = do
     render
     liftIO $ threadDelay $ p ^. speed
 
-initialState :: Pong
-initialState = Pong { _ball           = initialBall
-                    , _paddles        = (leftPaddle, rightPaddle)
-                    , _playFieldSpecs = playFieldSpecs
-                    , _score          = (0, 0)
-                    , _speed          = 50000
-                    }
-  where
-    initialBall  = Ball { _position = (1, 1)
-                        , _velocity = (1, 1)
-                        }
-    leftPaddle   = Paddle { _position = (1, 5)
-                          , _height   = 6
-                          }
-    rightPaddle  = Paddle { _position = (80, 5)
-                          , _height   = 6
-                          }
-    fieldSize    = PlayFieldSize { _width      = 80
-                                 , _height     = 25
-                                 , _resolution = 60  -- ?
-                                 }
-    fieldColors  = Colors { _background = ColorRGB 0 0 0
-                          , _foreground = ColorRGB 255 255 255
-                          }
-    playFieldSpecs = PlayFieldSpecs { _size  = fieldSize
-                                    , _color = fieldColors
-                                    }
+initialState :: PongState
+initialState = PongState
+    { _ball           = initialBall
+    , _paddles        = (leftPaddle, rightPaddle)
+    , _playFieldSpecs = playFieldSpecs
+    , _score          = (0, 0)
+    , _speed          = 50000
+    }
+    where
+        initialBall = Ball
+            { _position = (1, 1)
+            , _velocity = (1, 1)
+            }
+        leftPaddle = Paddle
+            { _position = (1, 5)
+            , _height   = 6
+            }
+        rightPaddle = Paddle
+            { _position = (80, 5)
+            , _height   = 6
+            }
+        fieldSize = PlayFieldSize
+            { _width      = 80
+            , _height     = 25
+            , _resolution = 60  -- ?
+            }
+        fieldColors = Colors
+            { _background = ColorRGB 0 0 0
+            , _foreground = ColorRGB 255 255 255
+            }
+        playFieldSpecs = PlayFieldSpecs
+            { _size  = fieldSize
+            , _color = fieldColors
+            }
 
 initialize :: Curses (Integer, Integer)
 initialize = do
