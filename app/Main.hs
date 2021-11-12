@@ -74,22 +74,22 @@ movePaddle k p limit = do
         _ -> 0  -- ??
 
 
-checkKeyboard :: Curses KeyAction
+checkKeyboard :: Curses (Maybe KeyAction)
 checkKeyboard = do
     w <- defaultWindow
     e <- getEvent w (Just 0)
     return $ case e of
-       Nothing -> NoAction
-       Just (EventCharacter 'q') -> Quit
-       Just (EventCharacter 'r') -> Restart
-       Just (EventCharacter 'k') -> RPaddleUp
-       Just (EventCharacter 'l') -> RPaddleDn
-       Just (EventCharacter 'a') -> LPaddleUp
-       Just (EventCharacter 's') -> LPaddleDn
-       Just (EventCharacter 'p') -> Pause
-       Just (EventCharacter '-') -> Slower
-       Just (EventCharacter '=') -> Faster
-       Just _ -> NoAction
+       Nothing -> Just NoAction
+       Just (EventCharacter 'q') -> Nothing
+       Just (EventCharacter 'r') -> Just Restart
+       Just (EventCharacter 'k') -> Just RPaddleUp
+       Just (EventCharacter 'l') -> Just RPaddleDn
+       Just (EventCharacter 'a') -> Just LPaddleUp
+       Just (EventCharacter 's') -> Just LPaddleDn
+       Just (EventCharacter 'p') -> Just Pause
+       Just (EventCharacter '-') -> Just Slower
+       Just (EventCharacter '=') -> Just Faster
+       Just _ -> Just NoAction
 
 
 updateDisplay :: (Integer, Integer) -> (Integer, Integer) -> PongState -> PongState -> Curses ()
@@ -216,12 +216,7 @@ main = do
         (rightPaddle . position . _x) .= 78 -- (cols - padding)
         (rightPaddle . position . _y) .= 5 -- (rows - (pong ^. rightPaddleHeight)) `div` 2
 
-        whileJust_ (do
-                       k <- lift checkKeyboard
-                       case k of
-                           Quit -> return Nothing
-                           _    -> return $ Just k
-                   ) processInput
+        whileJust_ (lift checkKeyboard) processInput
         lift quit
     where
         padding = 2
