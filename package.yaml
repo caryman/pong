@@ -25,6 +25,11 @@ dependencies:
 - monad-loops
 - mtl
 - ncurses >= 0.2.16
+- yaml
+- bytestring
+- text
+- filepath
+- directory
 
 library:
   source-dirs: src

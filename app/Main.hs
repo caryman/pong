@@ -1,12 +1,17 @@
 {-# LANGUAGE DisambiguateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import           Control.Concurrent ( threadDelay )
+import           Control.Concurrent.MVar
 import           Control.Monad.Loops
 import           Control.Monad.State
+import           Control.Applicative
 import           Control.Lens
 import           UI.NCurses
 import           Pong
+import           Config
 import           System.IO
+import           System.Directory
 import           Data.Char
 
 {- ===========================
@@ -202,8 +207,22 @@ drawBlock (x, y) paddleColor = do
     moveCursor (y+4) x
     drawGlyph glyphCornerLR
 
+readConfig :: IO ()
+readConfig = do
+    path <- System.Directory.getCurrentDirectory
+    let fileNameAndPath = path ++ "/" ++ fileName
+    print(fileNameAndPath)
+    ymlData <- readConfigurationGeneric fileNameAndPath :: IO PongGameConfig
+    print $ ymlData
+    writeConfiguration fileNameAndPath ymlData
+    newConfig <- newConfiguration fileNameAndPath :: IO Configuration
+    print $ configurationPath newConfig
+    mv <- takeMVar (configurationVar newConfig)
+    print $ mv
+
 main :: IO ()
 main = do
+    readConfig
     void . runCurses . flip runStateT initialState $ do
         pong <- get
         (rows, cols) <- lift initialize
